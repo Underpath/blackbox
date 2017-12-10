@@ -1,10 +1,11 @@
-import ConfigParser
+import configparser
 import os
 from sys import exit
 
 
 BLACKBOX_DIR = os.path.abspath(os.path.join(os.getenv("HOME"), '.blackbox/'))
 CONFIG_FILE = os.path.join(BLACKBOX_DIR, 'config.cfg')
+BLOCKSIZE = 65536
 
 
 def get_option(option, section, option_type='str'):
@@ -15,7 +16,7 @@ def get_option(option, section, option_type='str'):
 
     try:
         option_value = config.get(section, option)
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         return False
     if option_type == 'str':
         return option_value
@@ -28,7 +29,7 @@ def get_option(option, section, option_type='str'):
 def get_path(path_type, section, filename=None):
     path = get_option(path_type, section)
 
-    if not path or os.path.isdir(path):
+    if not path or not os.path.isdir(path):
         path = BLACKBOX_DIR
 
     if filename:
@@ -47,5 +48,10 @@ def check_config_file():
 
 
 check_config_file()
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.read(CONFIG_FILE)
+
+COMPRESSED_FILENAME = '{}.tar.gz'.format(get_option('filename', 'General'))
+ENCRYPTED_FILENAME = '{}.gpg'.format(COMPRESSED_FILENAME)
+COMPRESSED_FILE_PATH = get_path('staging_path', 'General', COMPRESSED_FILENAME)
+ENCRYPTED_FILE_PATH = '{}.gpg'.format(COMPRESSED_FILE_PATH)
